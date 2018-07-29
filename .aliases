@@ -1,4 +1,4 @@
-alias subl="/Applications/Sublime\ Text\ 2.app/Contents/SharedSupport/bin/subl"
+alias subl="/Applications/SublimeText.app/Contents/SharedSupport/bin/subl"
 alias ll="ls -lhA"
 alias ..="cd .."
 alias cd..="cd .."
@@ -7,9 +7,14 @@ alias myip="curl http://ipecho.net/plain; echo"
 alias please='sudo $(history -p !-1)'
 alias unpod="rm -rf Pods Podfile.lock *.xcworkspace"
 alias size='stat -f "%z bytes"'
+alias rmdd='rm -rf ~/Library/Developer/Xcode/DerivedData/'
+alias kx='killall Xcode'
+alias foldersizes="find . -maxdepth 1 -type d -mindepth 1 -exec du -hs {} \;"
 
 alias showhf="defaults write com.apple.finder AppleShowAllFiles TRUE && killall Finder"
 alias hidehf="defaults write com.apple.finder AppleShowAllFiles FALSE && killall Finder"
+
+alias amend="hg amend --rebase"
 
 alias g="git"
 alias gs="git status"
@@ -23,10 +28,43 @@ alias gm="git merge"
 alias gr="git reflog"
 alias gcl="git clone"
 alias gco="git checkout"
+alias gd="git diff"
+alias grhh="git reset --hard HEAD"
 
-alias pi="pod install"
+__git_complete g _git
+__git_complete gb _git_branch
+__git_complete gp _git_push
+__git_complete gpl _git_pull
+__git_complete gco _git_checkout
+
+alias pi="killall Xcode; pod install"
 
 alias unity="/Applications/Unity/Unity.app/Contents/MacOS/Unity &"
+
+alias hgwc="hg st --change ."
+alias hgc="hg children -r . --template \"{rev}\""
+
+alias aws_sync_vulse_real="aws s3 sync ~/Code/vulse-site/ s3://vulseapp.com/ --exclude '*.git*' --exclude '*.DS_Store' --acl public-read"
+alias aws_sync_vulse="aws_sync_vulse_real --dryrun; echo 'if dry run looks good then use aws_sync_vulse_real.'"
+
+function tomp4 () {
+    ffmpeg -i $1 -vcodec h264 -acodec aac -strict -2 $1.mp4
+}
+
+function spout () {
+    sporth -d $1 -o /tmp/sporthplay_out.wav $2 && afplay /tmp/sporthplay_out.wav
+}
+
+function sprepl () {
+    spout 10s <( echo "$@" )
+}
+
+function huc () {
+	children=`hgc`
+	if [[ $children != *" "* && $children != "" ]]; then
+		hg up $children
+	fi
+}
 
 function ga () {
     if [[ $# -eq 0 ]]; then
@@ -47,3 +85,17 @@ function md () {
     cd $1
 }
 
+function replace () {
+    set -o xtrace
+    for fn in $(ag -l $1); do
+        sed -i '' s~$1~$2~g $fn
+    done
+    for fn in $(find . -name "*$1*"); do
+        hg mv $fn `echo $fn | sed s/$1/$2/` || mv $fn `echo $fn | sed s/$1/$2/`
+    done
+    set +o xtrace
+}
+
+function work () {
+    find . -name *.xcworkspace -exec open {} \;
+}
